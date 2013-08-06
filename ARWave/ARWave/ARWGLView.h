@@ -8,23 +8,24 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "ARWLib.h"
+
 @class ARWGLView;
 
 @protocol ARWGLViewDelegate
--(void)glView:(ARWGLView *)glView displayUpdateWithTime:(const CVTimeStamp *)time;
+-(void)glView:(ARWGLView *)glView updateWithDeltaTime:(double)deltaTime;
 @end
 
 @interface ARWGLView : NSOpenGLView
 @property(nonatomic,weak)IBOutlet id<ARWGLViewDelegate> delegate;
 
 @property(nonatomic,assign)CVDisplayLinkRef displayLink;
-
--(CVReturn)displayLinkUpdateHandler:(CVDisplayLinkRef)displayLink
+-(CVReturn)displayLinkOutputHandler:(CVDisplayLinkRef)displayLink
 								now:(const CVTimeStamp*) now
 						 outputTime:(const CVTimeStamp*) outputTime
 							flagsIn:(CVOptionFlags)flagsIn
 						   flagsOut:(CVOptionFlags*) flagsOut;
 
--(void)displayUpdateWithTime:(const CVTimeStamp *)time;
+-(void)updateFrameHandler;
 
 @end

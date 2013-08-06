@@ -24,11 +24,12 @@
 	[[NSApplication sharedApplication]terminate:self];
 }
 
--(void)glView:(ARWGLView *)glView displayUpdateWithTime:(const CVTimeStamp *)time{
-	ARWLogInfo(@"%f",time->videoTime / (double)time->videoTimeScale);
+-(void)glView:(ARWGLView *)glView updateWithDeltaTime:(double)deltaTime{
+	ARWLogInfo(@"%f",deltaTime);
 	glClearColor(0.f,0.f,0.2f,1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glSwapAPPLE();
+	
+	glFlush();
 }
 
 @end

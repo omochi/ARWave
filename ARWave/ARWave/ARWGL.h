@@ -26,12 +26,12 @@ ARWVAFormatFuncDecl(void,_ARWGLAssert);
 
 #define ARWGLCall(funcName,...) ({\
 	funcName(__VA_ARGS__);\
-	ARWGLAssert(@"%s,%d,%s"__FILE__,__LINE__,#funcName);\
+	ARWGLAssert(@"%s,%d,%s",__FILE__,__LINE__,#funcName);\
 })
 
 #define ARWGLCallRet(retType,funcName,...) ({\
 	retType ret = funcName(__VA_ARGS__);\
-	ARWGLAssert(@"%s,%d,%s"__FILE__,__LINE__,#funcName);\
+	ARWGLAssert(@"%s,%d,%s",__FILE__,__LINE__,#funcName);\
 	ret;\
 })
 
