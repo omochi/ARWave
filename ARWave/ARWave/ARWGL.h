@@ -7,17 +7,31 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <OpenGL/OpenGL.h>
+#import <OpenGL/gl.h>
 #import <OpenGL/glu.h>
 
 #import "ARWEnv.h"
+#import "ARWPPMacro.h"
+#import "ARWError.h"
 
 NSString * ARWGLGetError(NSString *op);
 
 #if ARW_ENV_BUILD_DEBUG
-#define ARWGLAssert(op) _ARWGLAssert(op)
+#define ARWGLAssert(op,...) _ARWGLAssert(op,##__VA_ARGS__)
 #else
-#define ARWGLAssert(op) 
+#define ARWGLAssert(op,...)
 #endif
 
-void _ARWGLAssert(NSString * op);
+ARWVAFormatFuncDecl(void,_ARWGLAssert);
+
+#define ARWGLCall(funcName,...) ({\
+	funcName(__VA_ARGS__);\
+	ARWGLAssert(@"%s,%d,%s"__FILE__,__LINE__,#funcName);\
+})
+
+#define ARWGLCallRet(retType,funcName,...) ({\
+	retType ret = funcName(__VA_ARGS__);\
+	ARWGLAssert(@"%s,%d,%s"__FILE__,__LINE__,#funcName);\
+	ret;\
+})
+

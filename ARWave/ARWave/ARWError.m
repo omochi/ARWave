@@ -9,6 +9,8 @@
 #import "ARWError.h"
 
 NSString * const ARWErrorDomain = @"com.omochimetaru.ARW.ErrorDomain";
+NSString * const ARWErrorException = @"ARWErrorException";
+NSString * const ARWGLErrorException = @"ARWGLErrorException";
 
 NSString * ARWErrorDump(NSError * error){
 	NSMutableArray * lines = [NSMutableArray array];
@@ -55,5 +57,5 @@ ARWVAFormatFunc1Def(NSException*,ARWExceptionMake,NSString*,name){
 }
 
 NSException * ARWExceptionMakeWithError(NSError * error){
-	return ARWExceptionMake(NSGenericException,@"%@",ARWErrorDump(error));
+	return ARWExceptionMake(ARWErrorException,@"%@",ARWErrorDump(error));
 }

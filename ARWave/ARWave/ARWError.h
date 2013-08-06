@@ -12,6 +12,10 @@
 
 extern NSString * const ARWErrorDomain;
 
+extern NSString * const ARWErrorException;
+extern NSString * const ARWGLErrorException;
+
+
 typedef enum ARWErrorCode{
 	ARWErrorNoError = 0
 }ARWErrorCode;

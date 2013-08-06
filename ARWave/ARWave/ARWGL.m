@@ -20,9 +20,10 @@ NSString * ARWGLGetError(NSString *op){
 	return result;
 }
 
-void _ARWGLAssert(NSString * op){
+ARWVAFormatFuncDefVoid(_ARWGLAssert){
+	NSString * op = [[NSString alloc]initWithFormat:format arguments:ap];
 	NSString * error = ARWGLGetError(op);
 	if(error){
-		
+		@throw ARWExceptionMake(ARWGLErrorException,@"%@",op);
 	}
 }
