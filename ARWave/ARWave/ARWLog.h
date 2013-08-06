@@ -13,8 +13,5 @@
 #define ARWLogInfo(format,...) _ARWLogInfo(format,##__VA_ARGS__)
 #define ARWLogError(foramt,...) _ARWLogError(format,##__VA_ARGS__)
 
-ARWVAFuncDecl(void,_ARWLogInfo);
-void _ARWLogInfov(NSString * format,va_list ap);
-
-ARWVAFuncDecl(void,_ARWLogError);
-void _ARWLogErrorv(NSString * format,va_list ap);
+ARWVAFormatFuncDecl(void,_ARWLogInfo);
+ARWVAFormatFuncDecl(void,_ARWLogError);

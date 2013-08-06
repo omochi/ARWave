@@ -15,8 +15,11 @@
 		D605491817B12C5900FBBD50 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D605491617B12C5900FBBD50 /* MainMenu.xib */; };
 		D605492017B1329700FBBD50 /* ARWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = D605491F17B1329700FBBD50 /* ARWGLView.m */; };
 		D605492217B1373E00FBBD50 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605492117B1373E00FBBD50 /* CoreVideo.framework */; };
-		D605492617B13C6400FBBD50 /* ARWLogUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492517B13C6400FBBD50 /* ARWLogUtil.m */; };
+		D605492617B13C6400FBBD50 /* ARWLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492517B13C6400FBBD50 /* ARWLog.m */; };
 		D605492A17B1419800FBBD50 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605492917B1419800FBBD50 /* OpenGL.framework */; };
+		D605492D17B1534300FBBD50 /* ARWGL.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492C17B1534300FBBD50 /* ARWGL.m */; };
+		D605493017B1536600FBBD50 /* ARWEnv.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492F17B1536600FBBD50 /* ARWEnv.m */; };
+		D605493317B159A100FBBD50 /* ARWError.m in Sources */ = {isa = PBXBuildFile; fileRef = D605493217B159A100FBBD50 /* ARWError.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,10 +40,16 @@
 		D605491F17B1329700FBBD50 /* ARWGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLView.m; sourceTree = "<group>"; };
 		D605492117B1373E00FBBD50 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D605492317B13C4F00FBBD50 /* ARWLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWLib.h; sourceTree = "<group>"; };
-		D605492417B13C6400FBBD50 /* ARWLogUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWLogUtil.h; sourceTree = "<group>"; };
-		D605492517B13C6400FBBD50 /* ARWLogUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWLogUtil.m; sourceTree = "<group>"; };
+		D605492417B13C6400FBBD50 /* ARWLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWLog.h; sourceTree = "<group>"; };
+		D605492517B13C6400FBBD50 /* ARWLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWLog.m; sourceTree = "<group>"; };
 		D605492717B13D9D00FBBD50 /* ARWPPMacro.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARWPPMacro.h; sourceTree = "<group>"; };
 		D605492917B1419800FBBD50 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		D605492B17B1534300FBBD50 /* ARWGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGL.h; sourceTree = "<group>"; };
+		D605492C17B1534300FBBD50 /* ARWGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGL.m; sourceTree = "<group>"; };
+		D605492E17B1536600FBBD50 /* ARWEnv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWEnv.h; sourceTree = "<group>"; };
+		D605492F17B1536600FBBD50 /* ARWEnv.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWEnv.m; sourceTree = "<group>"; };
+		D605493117B159A100FBBD50 /* ARWError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWError.h; sourceTree = "<group>"; };
+		D605493217B159A100FBBD50 /* ARWError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWError.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,9 +134,15 @@
 			isa = PBXGroup;
 			children = (
 				D605492317B13C4F00FBBD50 /* ARWLib.h */,
+				D605492E17B1536600FBBD50 /* ARWEnv.h */,
+				D605492F17B1536600FBBD50 /* ARWEnv.m */,
 				D605492717B13D9D00FBBD50 /* ARWPPMacro.h */,
-				D605492417B13C6400FBBD50 /* ARWLogUtil.h */,
-				D605492517B13C6400FBBD50 /* ARWLogUtil.m */,
+				D605492417B13C6400FBBD50 /* ARWLog.h */,
+				D605492517B13C6400FBBD50 /* ARWLog.m */,
+				D605492B17B1534300FBBD50 /* ARWGL.h */,
+				D605492C17B1534300FBBD50 /* ARWGL.m */,
+				D605493117B159A100FBBD50 /* ARWError.h */,
+				D605493217B159A100FBBD50 /* ARWError.m */,
 			);
 			name = Lib;
 			sourceTree = "<group>";
@@ -200,7 +215,10 @@
 				D605490E17B12C5900FBBD50 /* main.m in Sources */,
 				D605491517B12C5900FBBD50 /* ARWAppDelegate.m in Sources */,
 				D605492017B1329700FBBD50 /* ARWGLView.m in Sources */,
-				D605492617B13C6400FBBD50 /* ARWLogUtil.m in Sources */,
+				D605492617B13C6400FBBD50 /* ARWLog.m in Sources */,
+				D605492D17B1534300FBBD50 /* ARWGL.m in Sources */,
+				D605493017B1536600FBBD50 /* ARWEnv.m in Sources */,
+				D605493317B159A100FBBD50 /* ARWError.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

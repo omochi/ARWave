@@ -6,7 +6,7 @@
 //  Copyright (c) 2013年 com.omochimetaru. All rights reserved.
 //
 
-#import "ARWLogUtil.h"
+#import "ARWLog.h"
 
 static void _ARWLogOutputv(FILE * fp,NSString *format,va_list ap){
 	NSString * str = [[NSString alloc]initWithFormat:format arguments:ap];
@@ -14,12 +14,12 @@ static void _ARWLogOutputv(FILE * fp,NSString *format,va_list ap){
 	fputs("\n",fp);
 }
 
-ARWVAFuncDefVoid(_ARWLogInfo);
-void _ARWLogInfov(NSString * format,va_list ap){
+ARWVAFormatFuncDefVoid(_ARWLogInfo){
+	fputs("[INFO]",stdout);
 	_ARWLogOutputv(stdout,format,ap);
 }
 
-ARWVAFuncDefVoid(_ARWLogError);
-void _ARWLogErrorv(NSString * format,va_list ap){
+ARWVAFormatFuncDefVoid(_ARWLogError){
+	fputs("[ERROR]",stderr);
 	_ARWLogOutputv(stderr,format,ap);
 }
