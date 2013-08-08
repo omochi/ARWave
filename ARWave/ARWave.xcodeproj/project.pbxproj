@@ -14,12 +14,15 @@
 		D605491517B12C5900FBBD50 /* ARWAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D605491417B12C5900FBBD50 /* ARWAppDelegate.m */; };
 		D605491817B12C5900FBBD50 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D605491617B12C5900FBBD50 /* MainMenu.xib */; };
 		D605492017B1329700FBBD50 /* ARWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = D605491F17B1329700FBBD50 /* ARWGLView.m */; };
-		D605492217B1373E00FBBD50 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605492117B1373E00FBBD50 /* CoreVideo.framework */; };
 		D605492617B13C6400FBBD50 /* ARWLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492517B13C6400FBBD50 /* ARWLog.m */; };
 		D605492A17B1419800FBBD50 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605492917B1419800FBBD50 /* OpenGL.framework */; };
 		D605492D17B1534300FBBD50 /* ARWGL.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492C17B1534300FBBD50 /* ARWGL.m */; };
 		D605493017B1536600FBBD50 /* ARWEnv.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492F17B1536600FBBD50 /* ARWEnv.m */; };
 		D605493317B159A100FBBD50 /* ARWError.m in Sources */ = {isa = PBXBuildFile; fileRef = D605493217B159A100FBBD50 /* ARWError.m */; };
+		D605493617B4025500FBBD50 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605493517B4025500FBBD50 /* AVFoundation.framework */; };
+		D605493817B40D8300FBBD50 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605493717B40D8300FBBD50 /* CoreMedia.framework */; };
+		D605493917B40D9000FBBD50 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605492117B1373E00FBBD50 /* CoreVideo.framework */; };
+		D605493C17B40DFF00FBBD50 /* ARWGLTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = D605493B17B40DFF00FBBD50 /* ARWGLTexture.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +53,10 @@
 		D605492F17B1536600FBBD50 /* ARWEnv.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWEnv.m; sourceTree = "<group>"; };
 		D605493117B159A100FBBD50 /* ARWError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWError.h; sourceTree = "<group>"; };
 		D605493217B159A100FBBD50 /* ARWError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWError.m; sourceTree = "<group>"; };
+		D605493517B4025500FBBD50 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		D605493717B40D8300FBBD50 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		D605493A17B40DFF00FBBD50 /* ARWGLTexture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLTexture.h; sourceTree = "<group>"; };
+		D605493B17B40DFF00FBBD50 /* ARWGLTexture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLTexture.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,8 +64,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D605493917B40D9000FBBD50 /* CoreVideo.framework in Frameworks */,
+				D605493817B40D8300FBBD50 /* CoreMedia.framework in Frameworks */,
+				D605493617B4025500FBBD50 /* AVFoundation.framework in Frameworks */,
 				D605492A17B1419800FBBD50 /* OpenGL.framework in Frameworks */,
-				D605492217B1373E00FBBD50 /* CoreVideo.framework in Frameworks */,
 				D605490217B12C5900FBBD50 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -86,6 +95,8 @@
 		D605490017B12C5900FBBD50 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D605493717B40D8300FBBD50 /* CoreMedia.framework */,
+				D605493517B4025500FBBD50 /* AVFoundation.framework */,
 				D605490117B12C5900FBBD50 /* Cocoa.framework */,
 				D605492117B1373E00FBBD50 /* CoreVideo.framework */,
 				D605492917B1419800FBBD50 /* OpenGL.framework */,
@@ -143,6 +154,8 @@
 				D605493217B159A100FBBD50 /* ARWError.m */,
 				D605492B17B1534300FBBD50 /* ARWGL.h */,
 				D605492C17B1534300FBBD50 /* ARWGL.m */,
+				D605493A17B40DFF00FBBD50 /* ARWGLTexture.h */,
+				D605493B17B40DFF00FBBD50 /* ARWGLTexture.m */,
 			);
 			name = Lib;
 			sourceTree = "<group>";
@@ -219,6 +232,7 @@
 				D605492D17B1534300FBBD50 /* ARWGL.m in Sources */,
 				D605493017B1536600FBBD50 /* ARWEnv.m in Sources */,
 				D605493317B159A100FBBD50 /* ARWError.m in Sources */,
+				D605493C17B40DFF00FBBD50 /* ARWGLTexture.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,6 +368,7 @@
 				D605491D17B12C5900FBBD50 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

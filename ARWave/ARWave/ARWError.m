@@ -35,15 +35,22 @@ NSString * ARWErrorDump(NSError * error){
 }
 
 ARWVAFormatFunc3Def(NSError*,ARWErrorMakeWithDomain,NSString *,domain, NSInteger, code, NSError*, causer){
-	NSString * desc = [[NSString alloc]initWithFormat:format arguments:ap];
+	NSString * desc = nil;
+	if(format){
+		desc = [[NSString alloc]initWithFormat:format arguments:ap];
+	}
 	NSMutableDictionary *user = [NSMutableDictionary dictionary];
-	user[NSLocalizedDescriptionKey] = desc;
+	if(desc)user[NSLocalizedDescriptionKey] = desc;
 	if(causer)user[NSUnderlyingErrorKey] = causer;
 	return [NSError errorWithDomain:domain code:code userInfo:user];
 }
 
 ARWVAFormatFunc2Def(NSError*,ARWErrorMake,ARWErrorCode,code,NSError*,causer){
-	return ARWErrorMakeWithDomainv(ARWErrorDomain,code,causer,format,ap);
+	NSMutableArray * strs = [NSMutableArray array];
+	[strs addObject:ARWErrorCodeDescription(code)];
+	if(format)[strs addObject:format];
+	return ARWErrorMakeWithDomainv(ARWErrorDomain,code,causer,
+								   [strs componentsJoinedByString:@" "],ap);
 }
 
 BOOL ARWErrorIs(NSError *error,NSString * domain,NSInteger code){

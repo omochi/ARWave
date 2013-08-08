@@ -17,8 +17,20 @@ extern NSString * const ARWGLErrorException;
 
 
 typedef enum ARWErrorCode{
-	ARWErrorNoError = 0
+	ARWErrorNoError = 0,
+	ARWErrorNotFoundCamera
 }ARWErrorCode;
+
+//自動挿入
+static NSString * ARWErrorCodeDescription(ARWErrorCode code){
+	switch (code) {
+		case ARWErrorNoError:
+			return @"no error";
+		case ARWErrorNotFoundCamera:
+			return @"camera not found";
+		default:return @"";
+	}
+}
 
 NSString * ARWErrorDump(NSError * error);
 

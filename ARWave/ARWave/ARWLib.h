@@ -13,4 +13,5 @@
 #import "ARWLog.h"
 #import "ARWError.h"
 #import "ARWGL.h"
+#import "ARWGLTexture.h"
 

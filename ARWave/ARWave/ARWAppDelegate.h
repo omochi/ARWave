@@ -8,13 +8,11 @@
 
 #import <Cocoa/Cocoa.h>
 #import <CoreVideo/CoreVideo.h>
+#import <AVFoundation/AVFoundation.h>
 
 
 @interface ARWAppDelegate : NSObject <NSApplicationDelegate,NSWindowDelegate>
 
-@property (assign) IBOutlet NSWindow *window;
-
-@property(nonatomic,strong) IBOutlet NSOpenGLView * glView;
 
 
 @end
