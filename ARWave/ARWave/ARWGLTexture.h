@@ -22,8 +22,11 @@
 		  internalFormat:(GLenum)internalFormat;
 -(void)setSubImageWithFormat:(GLenum)format type:(GLenum)type data:(const void *)data;
 
--(void)setMinFiler:(GLenum)minFiler;
--(void)setMagFiler:(GLenum)magFiler;
+//TexParameterを適応
+-(void)apply;
+
+-(void)setMinFilter:(GLenum)minFilter;
+-(void)setMagFilter:(GLenum)magFilter;
 -(void)setWrapS:(GLenum)wrapS;
 -(void)setWrapT:(GLenum)wrapT;
 

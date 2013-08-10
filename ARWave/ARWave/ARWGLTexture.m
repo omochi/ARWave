@@ -12,6 +12,7 @@
 @property(nonatomic,assign)GLuint objId;
 @property(nonatomic,assign)uint32_t width,height;
 @property(nonatomic,assign)GLenum internalFormat;
+@property(nonatomic,assign)GLenum minFilter,magFilter,wrapS,wrapT;
 @end
 
 @implementation ARWGLTexture
@@ -21,10 +22,10 @@
 	if(self){
 		ARWGLCall(glGenTextures,1,&_objId);
 		
-		[self setMinFiler:GL_LINEAR];
-		[self setMagFiler:GL_LINEAR];
-		[self setWrapS:GL_CLAMP_TO_EDGE];
-		[self setWrapT:GL_CLAMP_TO_EDGE];
+		_minFilter = GL_LINEAR;
+		_magFilter = GL_LINEAR;
+		_wrapS = GL_CLAMP_TO_EDGE;
+		_wrapT = GL_CLAMP_TO_EDGE;
 	}
 	return self;
 }
@@ -53,21 +54,25 @@
 	ARWGLCall(glTexSubImage2D,GL_TEXTURE_2D,0,0,0,_width,_height,format,type,data);
 }
 
--(void)setMinFiler:(GLenum)minFiler{
+-(void)apply{
 	[self bind];
-	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,minFiler);
+	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,_minFilter);
+	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,_magFilter);
+	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,_wrapS);
+	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,_wrapT);
 }
--(void)setMagFiler:(GLenum)magFiler{
-	[self bind];
-	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,magFiler);
+
+-(void)setMinFilter:(GLenum)minFilter{
+	_minFilter = minFilter;
+}
+-(void)setMagFilter:(GLenum)magFilter{
+	_magFilter = magFilter;
 }
 -(void)setWrapS:(GLenum)wrapS{
-	[self bind];
-	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,wrapS);
+	_wrapS = wrapS;
 }
 -(void)setWrapT:(GLenum)wrapT{
-	[self bind];
-	ARWGLCall(glTexParameteri,GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,wrapT);
+	_wrapT = wrapT;
 }
 
 @end

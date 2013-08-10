@@ -11,6 +11,6 @@
 
 @interface ARWGLCameraRenderer : NSObject
 
--(void)render:(ARWGLTexture *)texture;
+-(void)renderWithYTexture:(ARWGLTexture *)yTexture uvTexture:(ARWGLTexture *)uvTexture;
 
 @end

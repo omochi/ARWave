@@ -53,7 +53,8 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 @property(nonatomic,strong)AVCaptureVideoDataOutput * videoOutput;
 @property(nonatomic,strong)dispatch_queue_t captureQueue;
 
-@property(nonatomic,strong)ARWGLTexture * cameraTexture;
+@property(nonatomic,strong)ARWGLTexture * cameraYTexture;
+@property(nonatomic,strong)ARWGLTexture * cameraUVTexture;
 
 @property(nonatomic,strong)ARWTripleBuffering * cameraBuffering;
 @property(nonatomic,strong)ARWGLCameraRenderer * cameraRenderer;
@@ -104,6 +105,12 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	int value = 1;
 	[self.glContext setValues:&value forParameter:NSOpenGLCPSwapInterval];
 	
+	[self.glContext makeCurrentContext];
+	
+	const char *glVer = (const char *)ARWGLCallRet(const GLubyte *,glGetString,GL_VERSION);
+	
+	const char *slVer = (const char *)ARWGLCallRet(const GLubyte *,glGetString,GL_SHADING_LANGUAGE_VERSION);
+	ARWLogInfo(@"GL: %s, GLSL: %s",glVer,slVer);
 }
 
 -(NSString *)selectCameraUniqueID{
@@ -133,7 +140,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 			image.format = ARWImageFormatYUV420;
 			image.width = width;
 			image.height = height;
-			image.data = [NSMutableData dataWithLength:width*height*2];
+			image.data = [NSMutableData dataWithLength:width*height*1.5];
 			return image;
 		}];
 	}
@@ -306,14 +313,22 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		[self.cameraBuffering swap];
 		ARWImage * cameraImage = [self.cameraBuffering front];
 		
-		if(!self.cameraTexture){
-			self.cameraTexture = [[ARWGLTexture alloc]init];
-			[self.cameraTexture setImageWithWidth:cameraImage.width
+		if(!self.cameraYTexture){
+			self.cameraYTexture = [[ARWGLTexture alloc]init];
+			[self.cameraYTexture setImageWithWidth:cameraImage.width
 										   height:cameraImage.height
 								   internalFormat:GL_LUMINANCE];
+			
+			self.cameraUVTexture = [[ARWGLTexture alloc]init];
+			[self.cameraUVTexture setImageWithWidth:cameraImage.width/2
+											 height:cameraImage.height/2
+									 internalFormat:GL_LUMINANCE_ALPHA];
 		}
 
-		[self.cameraTexture setSubImageWithFormat:GL_LUMINANCE type:GL_UNSIGNED_BYTE data:cameraImage.data.bytes];
+		[self.cameraYTexture setSubImageWithFormat:GL_LUMINANCE type:GL_UNSIGNED_BYTE data:cameraImage.data.bytes];
+		int yLen = cameraImage.width * cameraImage.height;
+		[self.cameraUVTexture setSubImageWithFormat:GL_LUMINANCE_ALPHA type:GL_UNSIGNED_BYTE
+											   data:(uint8_t *)cameraImage.data.bytes + yLen];
 	}
 	
 	[NSOpenGLContext clearCurrentContext];
@@ -333,8 +348,9 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	ARWGLCall(glMatrixMode,GL_MODELVIEW);
 	glLoadIdentity();
 	
-	if(self.cameraTexture){
-		[self.cameraRenderer render:self.cameraTexture];
+	if(self.cameraYTexture){
+		[self.cameraRenderer renderWithYTexture:self.cameraYTexture
+									  uvTexture:self.cameraUVTexture];
 	}
 	
 	[self.glContext flushBuffer];
