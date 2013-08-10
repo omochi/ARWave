@@ -53,6 +53,8 @@ ARWVAFormatFunc2Def(NSError*,ARWErrorMake,ARWErrorCode,code,NSError*,causer){
 								   [strs componentsJoinedByString:@" "],ap);
 }
 
+
+
 BOOL ARWErrorIs(NSError *error,NSString * domain,NSInteger code){
 	return [error.domain isEqualToString:domain] && error.code == code;
 }
@@ -61,6 +63,10 @@ ARWVAFormatFunc1Def(NSException*,ARWExceptionMake,NSString*,name){
 	return [NSException exceptionWithName:name
 								   reason:[[NSString alloc]initWithFormat:format arguments:ap]
 								 userInfo:nil];
+}
+
+ARWVAFormatFuncDef(NSException*,ARWGenericExceptionMake){
+	return ARWExceptionMakev(NSGenericException, format, ap);
 }
 
 NSException * ARWExceptionMakeWithError(NSError * error){

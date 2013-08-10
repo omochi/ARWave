@@ -6,6 +6,8 @@
 //  Copyright (c) 2013年 com.omochimetaru. All rights reserved.
 //
 
+#define ARWPPStr(str) #str
+
 #define ARWVAFormatFuncDecl(retType,vaFunc) \
 retType vaFunc(NSString * format,...) NS_FORMAT_FUNCTION(1,2); \
 retType vaFunc##v(NSString * format,va_list ap) NS_FORMAT_FUNCTION(1,0);

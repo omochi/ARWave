@@ -8,6 +8,3 @@
 
 #import "ARWImageFormat.h"
 
-@implementation ARWImageFormat
-
-@end

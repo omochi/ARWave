@@ -21,9 +21,9 @@
 
 @property(nonatomic,strong)ARWGLTexture * cameraTexture;
 
-@property(nonatomic,strong)NSArray * cameraBuffers;
-@property(nonatomic,assign)int cameraBuffersFrontIndex;
-@property(nonatomic,strong)NSRecursiveLock * cameraBuffersLock;
+@property(nonatomic,strong)ARWTripleBuffering * cameraBuffering;
+@property(nonatomic,strong)ARWGLCameraRenderer * cameraRenderer;
+
 @end
 
 @implementation ARWAppDelegate
@@ -79,17 +79,20 @@
 		
 		[self.captureSession startRunning];
 		
-		uint32_t bufferSize = 1280*720*2;
-		
-		NSMutableArray * cameraBuffers = [NSMutableArray array];
-		[cameraBuffers addObject:[NSMutableData dataWithLength:bufferSize]];
-		[cameraBuffers addObject:[NSMutableData dataWithLength:bufferSize]];
-		self.cameraBuffers = cameraBuffers;
-		self.cameraBuffersFrontIndex = 0;
-		self.cameraBuffersLock = [[NSRecursiveLock alloc]init];
-		
+		self.cameraBuffering = [[ARWTripleBuffering alloc]initWithBufferCreator:^id{
+			float w = 1280;
+			float h = 960;
+			ARWImage * image = [[ARWImage alloc]init];
+			image.format = ARWImageFormatYUV420;
+			image.width = w;
+			image.height = h;
+			image.data = [NSMutableData dataWithLength:w*h*2];
+			return image;
+		}];
 		
 		self.cameraTexture = [[ARWGLTexture alloc]init];
+		
+		self.cameraRenderer = [[ARWGLCameraRenderer alloc]init];
 		
 		return YES;
 	}(&error)){
@@ -102,18 +105,6 @@
 	[self.captureSession stopRunning];
 }
 
-
--(void)cameraBuffersSwap{
-	[self.cameraBuffersLock lock];
-	self.cameraBuffersFrontIndex ++;
-	self.cameraBuffersFrontIndex %= self.cameraBuffers.count;
-	[self.cameraBuffersLock unlock];
-}
-
--(NSMutableData *)cameraBuffersBackBuffer{
-	return self.cameraBuffers[ (self.cameraBuffersFrontIndex+1) % self.cameraBuffers.count ];
-}
-
 -(void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
 	CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 	if(CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly)){
@@ -121,8 +112,9 @@
 		return;
 	}
 	
-	NSMutableData * backBuffer = [self cameraBuffersBackBuffer];
-	uint8_t * d = (uint8_t *)[backBuffer mutableBytes];
+	ARWImage * backBuffer = [self.cameraBuffering lock];
+	
+	uint8_t * d = (uint8_t *)[backBuffer.data mutableBytes];
 
 	int w = (int)CVPixelBufferGetWidthOfPlane(pixelBuffer,0);
 	int h = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer,0);
@@ -135,6 +127,7 @@
 			s += stride;
 		}
 	}
+		
 	{
 		uint8_t * s = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,1);
 		int stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
@@ -144,13 +137,27 @@
 			s += stride;
 		}
 	}
+
+	ARWLogInfo(@"write %@",backBuffer);
+	
+//	d = (uint8_t *)[backBuffer.data mutableBytes];
+//	for(int yi = 0;yi<h;yi++){
+//		for(int xi = 0;xi<w;xi++){
+//			d[0] = 255;
+//			d[1] = 128;
+//			d[2] = 0;
+//			d[3] = 255;
+//			d+=4;
+//		}
+//	}
+//	
+	
+	[self.cameraBuffering unlock];
 	
 	if(CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly)){
 		ARWLogError(@"CVPixelBufferUnlockBaseAddress failed");
 		return;
 	}
-	
-	[self cameraBuffersSwap];
 }
 
 
@@ -162,13 +169,34 @@
 }
 
 -(void)updateWithDeltaTime:(double)deltaTime{
+	[self.cameraBuffering swap];
+	ARWImage * cameraImage = [self.cameraBuffering front];
+	
+		ARWLogInfo(@"read %@",cameraImage);
+
+	[self.cameraTexture setImageWithWidth:cameraImage.width height:cameraImage.height
+						   internalFormat:GL_LUMINANCE format:GL_LUMINANCE
+									 type:GL_UNSIGNED_BYTE data:cameraImage.data.bytes];
+	
 	
 }
 -(void)render{
-	glClearColor(0.f,0.f,0.2f,1.f);
-	glClear(GL_COLOR_BUFFER_BIT);
+
+	ARWGLCall(glClearColor,0.f,0.f,0.2f,1.f);
+	ARWGLCall(glClear,GL_COLOR_BUFFER_BIT);
+
+	CGRect bounds = self.glView.bounds;
+	ARWGLCall(glViewport,0, 0,CGRectGetWidth(bounds), CGRectGetHeight(bounds));
 	
-	glFlush();
+	ARWGLCall(glMatrixMode,GL_PROJECTION);
+	glLoadIdentity();
+	
+	ARWGLCall(glMatrixMode,GL_MODELVIEW);
+	glLoadIdentity();
+	
+	[self.cameraRenderer render:self.cameraTexture];
+	
+	ARWGLCall(glFlush);
 }
 
 @end

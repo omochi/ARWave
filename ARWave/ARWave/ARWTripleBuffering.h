@@ -23,9 +23,7 @@
 //writer
 
 //書き込みの準備
--(void)lock;
+-(id)lock;
 -(void)unlock;
-//書き込み先
--(id)back;
 
 @end

@@ -26,6 +26,9 @@
 		D605493F17B5488A00FBBD50 /* ARWImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D605493E17B5488A00FBBD50 /* ARWImage.m */; };
 		D605494217B548B100FBBD50 /* ARWImageFormat.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494117B548B100FBBD50 /* ARWImageFormat.m */; };
 		D605494517B54CB300FBBD50 /* ARWTripleBuffering.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494417B54CB300FBBD50 /* ARWTripleBuffering.m */; };
+		D605494817B610AE00FBBD50 /* ARWGLCameraRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494717B610AD00FBBD50 /* ARWGLCameraRenderer.m */; };
+		D605494B17B611B200FBBD50 /* ARWGLProgram.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494A17B611B100FBBD50 /* ARWGLProgram.m */; };
+		D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494D17B617C100FBBD50 /* ARWGLShader.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +69,12 @@
 		D605494117B548B100FBBD50 /* ARWImageFormat.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWImageFormat.m; sourceTree = "<group>"; };
 		D605494317B54CB300FBBD50 /* ARWTripleBuffering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWTripleBuffering.h; sourceTree = "<group>"; };
 		D605494417B54CB300FBBD50 /* ARWTripleBuffering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWTripleBuffering.m; sourceTree = "<group>"; };
+		D605494617B610AD00FBBD50 /* ARWGLCameraRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLCameraRenderer.h; sourceTree = "<group>"; };
+		D605494717B610AD00FBBD50 /* ARWGLCameraRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLCameraRenderer.m; sourceTree = "<group>"; };
+		D605494917B611B100FBBD50 /* ARWGLProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLProgram.h; sourceTree = "<group>"; };
+		D605494A17B611B100FBBD50 /* ARWGLProgram.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLProgram.m; sourceTree = "<group>"; };
+		D605494C17B617C100FBBD50 /* ARWGLShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLShader.h; sourceTree = "<group>"; };
+		D605494D17B617C100FBBD50 /* ARWGLShader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLShader.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -171,6 +180,12 @@
 				D605494117B548B100FBBD50 /* ARWImageFormat.m */,
 				D605494317B54CB300FBBD50 /* ARWTripleBuffering.h */,
 				D605494417B54CB300FBBD50 /* ARWTripleBuffering.m */,
+				D605494617B610AD00FBBD50 /* ARWGLCameraRenderer.h */,
+				D605494717B610AD00FBBD50 /* ARWGLCameraRenderer.m */,
+				D605494917B611B100FBBD50 /* ARWGLProgram.h */,
+				D605494A17B611B100FBBD50 /* ARWGLProgram.m */,
+				D605494C17B617C100FBBD50 /* ARWGLShader.h */,
+				D605494D17B617C100FBBD50 /* ARWGLShader.m */,
 			);
 			name = Lib;
 			sourceTree = "<group>";
@@ -251,6 +266,9 @@
 				D605493F17B5488A00FBBD50 /* ARWImage.m in Sources */,
 				D605494217B548B100FBBD50 /* ARWImageFormat.m in Sources */,
 				D605494517B54CB300FBBD50 /* ARWTripleBuffering.m in Sources */,
+				D605494817B610AE00FBBD50 /* ARWGLCameraRenderer.m in Sources */,
+				D605494B17B611B200FBBD50 /* ARWGLProgram.m in Sources */,
+				D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

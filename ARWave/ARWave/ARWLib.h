@@ -14,4 +14,8 @@
 #import "ARWError.h"
 #import "ARWGL.h"
 #import "ARWGLTexture.h"
+#import "ARWImage.h"
+#import "ARWImageFormat.h"
+#import "ARWTripleBuffering.h"
+#import "ARWGLCameraRenderer.h"
 

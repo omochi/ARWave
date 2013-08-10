@@ -41,5 +41,7 @@ ARWVAFormatFunc2Decl(NSError*,ARWErrorMake,ARWErrorCode,code,NSError*,causer);
 BOOL ARWErrorIs(NSError *error,NSString * domain,NSInteger code);
 
 ARWVAFormatFunc1Decl(NSException*,ARWExceptionMake,NSString *,name);
+ARWVAFormatFuncDecl(NSException*,ARWGenericExceptionMake);
 
 NSException * ARWExceptionMakeWithError(NSError * error);
+
