@@ -30,6 +30,8 @@
 		D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494D17B617C100FBBD50 /* ARWGLShader.m */; };
 		D605495317B6440800FBBD50 /* ExceptionHandling.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605495217B6440800FBBD50 /* ExceptionHandling.framework */; };
 		D605495617B6599F00FBBD50 /* ARWFourCharCode.m in Sources */ = {isa = PBXBuildFile; fileRef = D605495517B6599F00FBBD50 /* ARWFourCharCode.m */; };
+		D605495917B6D98700FBBD50 /* ARWLayoutUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = D605495817B6D98700FBBD50 /* ARWLayoutUtil.m */; };
+		D605495C17B6E04800FBBD50 /* ARWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = D605495B17B6E04700FBBD50 /* ARWGLView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -77,6 +79,10 @@
 		D605495217B6440800FBBD50 /* ExceptionHandling.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExceptionHandling.framework; path = System/Library/Frameworks/ExceptionHandling.framework; sourceTree = SDKROOT; };
 		D605495417B6599E00FBBD50 /* ARWFourCharCode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWFourCharCode.h; sourceTree = "<group>"; };
 		D605495517B6599F00FBBD50 /* ARWFourCharCode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWFourCharCode.m; sourceTree = "<group>"; };
+		D605495717B6D98600FBBD50 /* ARWLayoutUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWLayoutUtil.h; sourceTree = "<group>"; };
+		D605495817B6D98700FBBD50 /* ARWLayoutUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWLayoutUtil.m; sourceTree = "<group>"; };
+		D605495A17B6E04700FBBD50 /* ARWGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLView.h; sourceTree = "<group>"; };
+		D605495B17B6E04700FBBD50 /* ARWGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +149,8 @@
 				D605492817B140BC00FBBD50 /* Lib */,
 				D605491317B12C5900FBBD50 /* ARWAppDelegate.h */,
 				D605491417B12C5900FBBD50 /* ARWAppDelegate.m */,
+				D605495A17B6E04700FBBD50 /* ARWGLView.h */,
+				D605495B17B6E04700FBBD50 /* ARWGLView.m */,
 				D605491617B12C5900FBBD50 /* MainMenu.xib */,
 				D605490817B12C5900FBBD50 /* Supporting Files */,
 			);
@@ -190,6 +198,8 @@
 				D605494D17B617C100FBBD50 /* ARWGLShader.m */,
 				D605495417B6599E00FBBD50 /* ARWFourCharCode.h */,
 				D605495517B6599F00FBBD50 /* ARWFourCharCode.m */,
+				D605495717B6D98600FBBD50 /* ARWLayoutUtil.h */,
+				D605495817B6D98700FBBD50 /* ARWLayoutUtil.m */,
 			);
 			name = Lib;
 			sourceTree = "<group>";
@@ -273,6 +283,8 @@
 				D605494B17B611B200FBBD50 /* ARWGLProgram.m in Sources */,
 				D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */,
 				D605495617B6599F00FBBD50 /* ARWFourCharCode.m in Sources */,
+				D605495917B6D98700FBBD50 /* ARWLayoutUtil.m in Sources */,
+				D605495C17B6E04800FBBD50 /* ARWGLView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

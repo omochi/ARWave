@@ -19,3 +19,4 @@
 #import "ARWTripleBuffering.h"
 #import "ARWGLCameraRenderer.h"
 #import "ARWFourCharCode.h"
+#import "ARWLayoutUtil.h"

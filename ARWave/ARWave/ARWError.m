@@ -50,7 +50,7 @@ ARWVAFormatFunc2Def(NSError*,ARWErrorMake,ARWErrorCode,code,NSError*,causer){
 	[strs addObject:ARWErrorCodeDescription(code)];
 	if(format)[strs addObject:format];
 	return ARWErrorMakeWithDomainv(ARWErrorDomain,code,causer,
-								   [strs componentsJoinedByString:@" "],ap);
+								   [strs componentsJoinedByString:@","],ap);
 }
 
 

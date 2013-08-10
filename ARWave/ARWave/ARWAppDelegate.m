@@ -10,6 +10,8 @@
 #import "ARWAppDelegate.h"
 #import "ARWLib.h"
 
+#import "ARWGLView.h"
+
 static CVReturn
 ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 										const CVTimeStamp* now,
@@ -25,18 +27,22 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	}
 }
 
-@interface ARWAppDelegate()<AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ARWAppDelegate()<ARWGLViewDelegate,AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate>
+//ビュー
 @property(nonatomic,strong)IBOutlet NSWindow *window;
 @property(nonatomic,strong)NSView * rootView;
-@property(nonatomic,strong)NSOpenGLView * glView;
+@property(nonatomic,strong)ARWGLView * glView;
 
+//GL
 @property(nonatomic,strong)NSOpenGLPixelFormat * glPixelFormat;
 @property(nonatomic,strong)NSOpenGLContext * glContext;
 
+//ディスプレイリンク
 @property(nonatomic,assign)CVDisplayLinkRef displayLink;
 @property(nonatomic,assign)int displayLinkCounter;
 @property(nonatomic,assign)int displayLinkInterval;
 
+//メインループ
 @property(nonatomic,assign)uint64_t frameCount;
 @property(nonatomic,strong)NSDate * fpsCountStartTime;
 @property(nonatomic,assign)int fpsFrameCount;
@@ -46,18 +52,24 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 @property(nonatomic,assign)int fpsPrintCounter;
 @property(nonatomic,assign)int fpsPrintInterval;
 
-
-
-@property(nonatomic,strong)AVCaptureSession * captureSession;
-@property(nonatomic,strong)AVCaptureDevice * camera;
-@property(nonatomic,strong)AVCaptureVideoDataOutput * videoOutput;
-@property(nonatomic,strong)dispatch_queue_t captureQueue;
-
+//カメラ
+@property(nonatomic,strong)AVCaptureSession * videoCaptureSession;
+@property(nonatomic,strong)AVCaptureDevice * captureCamera;
+@property(nonatomic,strong)AVCaptureVideoDataOutput * videoCaptureOutput;
 @property(nonatomic,strong)ARWGLTexture * cameraYTexture;
 @property(nonatomic,strong)ARWGLTexture * cameraUVTexture;
-
 @property(nonatomic,strong)ARWTripleBuffering * cameraBuffering;
 @property(nonatomic,strong)ARWGLCameraRenderer * cameraRenderer;
+
+//サウンド
+@property(nonatomic,strong)AVCaptureSession * audioCaptureSession;
+@property(nonatomic,strong)AVCaptureDevice * captureMic;
+@property(nonatomic,assign)AudioStreamBasicDescription audioCaptureFormat;
+@property(nonatomic,strong)AVCaptureAudioDataOutput * audioCaptureOutput;
+@property(nonatomic,strong)NSMutableData * capturedAudioStream;
+
+//表示分
+@property(nonatomic,strong)NSMutableData * waveAudioStream;
 
 @end
 
@@ -117,7 +129,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	NSArray * devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
 	ARWLogInfo(@"[Camera List]");
 	for(AVCaptureDevice * device in devices){
-		ARWLogInfo(@"%@/%@/%@",device.localizedName,device.modelID,device.uniqueID);
+		ARWLogInfo(@"[%@]/[%@]/[%@]",device.localizedName,device.modelID,device.uniqueID);
 	}
 	if(devices.count == 0)return nil;
 	return [(AVCaptureDevice *)devices[0] uniqueID];
@@ -129,8 +141,101 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	return [AVCaptureDevice deviceWithUniqueID:cameraID];
 }
 
+-(NSString *)selectMicUniqueID{
+	NSArray * devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeAudio];
+	ARWLogInfo(@"[Mic List]");
+	for(AVCaptureDevice * device in devices){
+		ARWLogInfo(@"[%@]/[%@]/[%@]",device.localizedName,device.modelID,device.uniqueID);
+	}
+	if(devices.count == 0)return nil;
+	return [(AVCaptureDevice *)devices[0] uniqueID];
+}
+
+-(AVCaptureDevice *)selectMic{
+	NSString * micID = [self selectMicUniqueID];
+	if(!micID)return nil;
+	return [AVCaptureDevice deviceWithUniqueID:micID];
+}
+
+-(BOOL)initVideoCaptureWithError:(NSError **)error{
+	//カメラ
+	self.captureCamera = [self selectCamera];
+	if(!self.captureCamera){
+		if(error)*error = ARWErrorMake(ARWErrorNoCamera,nil,nil);
+		return NO;
+	}
+	
+	AVCaptureDeviceInput * input = [AVCaptureDeviceInput deviceInputWithDevice:self.captureCamera error:error];
+	if(!input)return NO;
+	
+	self.videoCaptureOutput = [[AVCaptureVideoDataOutput alloc]init];
+	self.videoCaptureOutput.alwaysDiscardsLateVideoFrames = NO;
+	
+	NSMutableDictionary * videoSettings = [NSMutableDictionary dictionary];
+	videoSettings[(__bridge id)kCVPixelBufferPixelFormatTypeKey] = @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange);
+	self.videoCaptureOutput.videoSettings = videoSettings;
+	
+	[self.videoCaptureOutput setSampleBufferDelegate:self
+											   queue:dispatch_queue_create("video queue", DISPATCH_QUEUE_SERIAL)];
+	
+	self.videoCaptureSession = [[AVCaptureSession alloc]init];
+	self.videoCaptureSession.sessionPreset = AVCaptureSessionPresetHigh;
+	[self.videoCaptureSession addInput:input];
+	[self.videoCaptureSession addOutput:self.videoCaptureOutput];
+	
+	self.cameraRenderer = [[ARWGLCameraRenderer alloc]init];
+	
+	return YES;
+}
+
+-(BOOL)initAudioCaptureWithError:(NSError **)error{
+	self.captureMic = [self selectMic];
+	if(!self.captureMic){
+		if(error)*error = ARWErrorMake(ARWErrorNoMic,nil,nil);
+		return NO;
+	}
+	
+	if(!self.captureMic.connected){
+		if(error)*error = ARWErrorMake(ARWErrorNotConnected,nil,@"%@",self.captureMic.localizedName);
+		return NO;
+	}
+	
+	
+	//モノラルfloat
+	_audioCaptureFormat = *CMAudioFormatDescriptionGetStreamBasicDescription(self.captureMic.activeFormat.formatDescription);
+	_audioCaptureFormat.mFormatID = kAudioFormatLinearPCM;
+	//ここだけ元の値を考慮
+	_audioCaptureFormat.mSampleRate = MIN(48000,self.audioCaptureFormat.mSampleRate);
+	_audioCaptureFormat.mChannelsPerFrame = 1;
+	_audioCaptureFormat.mBitsPerChannel = sizeof(float) * 8;
+	_audioCaptureFormat.mFormatFlags = kLinearPCMFormatFlagIsFloat;
+	
+	AVCaptureDeviceInput * input = [AVCaptureDeviceInput deviceInputWithDevice:self.captureMic error:error];
+	if(!input)return NO;
+	
+	self.audioCaptureOutput = [[AVCaptureAudioDataOutput alloc]init];
+	NSMutableDictionary * audioSettings = [NSMutableDictionary dictionary];
+	audioSettings[AVFormatIDKey] = @(kAudioFormatLinearPCM);
+	audioSettings[AVSampleRateKey] = @(_audioCaptureFormat.mSampleRate);
+	audioSettings[AVLinearPCMIsFloatKey] = @((_audioCaptureFormat.mFormatFlags & kLinearPCMFormatFlagIsFloat) != 0);
+	audioSettings[AVNumberOfChannelsKey] = @(_audioCaptureFormat.mChannelsPerFrame);
+	audioSettings[AVLinearPCMBitDepthKey] = @(_audioCaptureFormat.mBitsPerChannel);
+	self.audioCaptureOutput.audioSettings = audioSettings;
+		
+	[self.audioCaptureOutput setSampleBufferDelegate:self
+											   queue:dispatch_queue_create("audio queue", DISPATCH_QUEUE_SERIAL)];
+	
+	self.audioCaptureSession = [[AVCaptureSession alloc]init];
+	[self.audioCaptureSession addInput:input];
+	[self.audioCaptureSession addOutput:self.audioCaptureOutput];
+	
+	self.capturedAudioStream = [[NSMutableData alloc]init];
+	
+	return YES;
+}
+
 //キャプチャスレッドからメインスレにポストされる
--(void)initCameraCaptureWithWidth:(uint32_t)width height:(uint32_t)height{
+-(void)initCameraBufferingWithWidth:(uint32_t)width height:(uint32_t)height{
 	if(!self.cameraBuffering){
 		//二重初期化防止
 		
@@ -174,70 +279,23 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		//GL
 		[self initOpenGL];
 		[self.glContext makeCurrentContext];
-		self.glView = [[NSOpenGLView alloc]initWithFrame:self.rootView.bounds
-											 pixelFormat:self.glPixelFormat];
+		self.glView = [[ARWGLView alloc]initWithFrame:self.rootView.bounds
+										  pixelFormat:self.glPixelFormat];
 		[self.glView setOpenGLContext:self.glContext];
 		[self.rootView addSubview:self.glView];
 		self.glView.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+		self.glView.delegate = self;
 
+		if(![self initVideoCaptureWithError:error])return NO;
 		
-		//カメラ
-		self.camera = [self selectCamera];
-		if(!self.camera){
-			if(error)*error = ARWErrorMake(ARWErrorNotFoundCamera,nil,nil);
-			return NO;
-		}
-		
-		//ARWLogInfo(@"formats = \n%@",[self.camera formats]);
-		//ARWLogInfo(@"format = %@",[self.camera activeFormat]);
-		
-//		AVCaptureDeviceFormat * selectedFormat = self.camera.activeFormat;
-//		for(AVCaptureDeviceFormat * format in self.camera.formats){
-//			CMVideoFormatDescriptionRef desc = format.formatDescription;
-//			CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(desc);
-//			FourCharCode fcc = CMFormatDescriptionGetMediaSubType(desc);
-//			ARWLogInfo(@"%@ dim %d x %d %@",
-//					   ARWFourCharCodeToString(fcc),
-//					   dims.width,dims.height,[format videoSupportedFrameRateRanges]);
-//			if(dims.width >= 800 && dims.height >= 600){
-//				selectedFormat= format;
-//				break;
-//			}
-//		}
-//		
-//		[self.camera lockForConfiguration:error];
-//		[self.camera setActiveFormat:selectedFormat];
-//		[self.camera unlockForConfiguration];
-		
-		
-		
-		AVCaptureDeviceInput * input = [AVCaptureDeviceInput deviceInputWithDevice:self.camera error:error];
-		if(!input)return NO;
-		
-		AVCaptureVideoDataOutput * output = [[AVCaptureVideoDataOutput alloc]init];
-		output.alwaysDiscardsLateVideoFrames = NO;
-
-		NSMutableDictionary * videoSettings = [NSMutableDictionary dictionary];
-		videoSettings[(__bridge id)kCVPixelBufferPixelFormatTypeKey] = @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange);
-		output.videoSettings = videoSettings;
-
-		self.captureQueue = dispatch_queue_create("camera queue", DISPATCH_QUEUE_SERIAL);
-		[output setSampleBufferDelegate:self queue:self.captureQueue];
-
-		//AVCaptureConnection * captureConnection = [output connectionWithMediaType:AVMediaTypeVideo];
-		//captureConnection.videoMinFrameDuration = CMTimeMake(1, 60);
-		
-		self.captureSession = [[AVCaptureSession alloc]init];
-
-		self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-		[self.captureSession addInput:input];
-		[self.captureSession addOutput:output];
-		
-		self.cameraRenderer = [[ARWGLCameraRenderer alloc]init];
-		
+		if(![self initAudioCaptureWithError:error])return NO;
+	
 		//開始
 		CVDisplayLinkStart(_displayLink);
-		[self.captureSession startRunning];
+		[self.videoCaptureSession startRunning];
+		[self.audioCaptureSession startRunning];
+		
+		self.waveAudioStream = [[NSMutableData alloc]init];
 		
 		return YES;
 	}(&error)){
@@ -247,13 +305,15 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 
 -(void)applicationWillTerminate:(NSNotification *)notification{
 
-	[self.captureSession stopRunning];
+	[self.audioCaptureSession stopRunning];
+	[self.videoCaptureSession stopRunning];
 	CVDisplayLinkRelease(_displayLink);
 	
 	self.glContext = nil;
 }
 
--(void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
+-(void)videoCaptureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
+	
 	CVPixelBufferRef pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 	if(CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly)){
 		ARWLogError(@"CVPixelBufferLockBaseAddress failed");
@@ -267,7 +327,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
 			//二重防止されてる
-			[self initCameraCaptureWithWidth:w height:h];
+			[self initCameraBufferingWithWidth:w height:h];
 		});
 		
 	}else{
@@ -299,12 +359,71 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		
 		[self.cameraBuffering unlock];
 	}
-		
+	
 	if(CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly)){
 		ARWLogError(@"CVPixelBufferUnlockBaseAddress failed");
 		return;
 	}
 }
+
+-(void)audioCaptureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
+	
+	CMFormatDescriptionRef formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer);
+    const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
+
+	int64_t numSample = CMSampleBufferGetNumSamples(sampleBuffer);
+	
+	//
+//	if(asbd->mFormatID != kAudioFormatLinearPCM ||
+//	   asbd->mSampleRate != self.audioCaptureFormat.mSampleRate){
+//		ARWLogError(@"audio capture error: format: %@, sampleRate: %f",ARWFourCharCodeToString(asbd->mFormatID),asbd->mSampleRate);
+//		return;
+//	}
+	
+	CMBlockBufferRef blockBuffer;
+	AudioBufferList audioBufferList;
+	
+	if(CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, NULL, &audioBufferList,sizeof(audioBufferList), NULL, NULL, 0, &blockBuffer)){
+		ARWLogError(@"CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer failed");
+		return;
+	}
+	
+	uint64_t dataLen = CMBlockBufferGetDataLength(blockBuffer);
+	
+	@synchronized(self){
+		uint64_t oldLen = self.capturedAudioStream.length;
+		[self.capturedAudioStream setLength:oldLen + dataLen];
+		if(CMBlockBufferCopyDataBytes(blockBuffer,0,dataLen,
+									  (uint8_t *)self.capturedAudioStream.mutableBytes + oldLen)){
+			ARWLogError(@"CMBlockBufferCopyDataBytes failed");
+			CFRelease(blockBuffer);
+			return;
+		}
+		
+		//0.1秒分までしか溜め込まない
+		uint64_t maxSampleNum = self.audioCaptureFormat.mSampleRate * 0.1;
+		uint64_t sampleNum = self.capturedAudioStream.length / sizeof(float);
+		
+		if(sampleNum > maxSampleNum){
+			uint64_t deleteLen = (sampleNum - maxSampleNum) * sizeof(float);
+			[self.capturedAudioStream replaceBytesInRange:NSMakeRange(0,deleteLen) withBytes:NULL length:0];
+		}
+		
+		//ARWLogInfo(@"captured audio %ld bytes",self.capturedAudioStream.length);
+	}
+		
+	CFRelease(blockBuffer);
+}
+
+-(void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
+
+	if(captureOutput == self.videoCaptureOutput){
+		[self videoCaptureOutput:captureOutput didOutputSampleBuffer:sampleBuffer fromConnection:connection];
+	}else if(captureOutput == self.audioCaptureOutput){
+		[self audioCaptureOutput:captureOutput didOutputSampleBuffer:sampleBuffer fromConnection:connection];
+	}
+}
+
 
 -(void)updateWithDeltaTime:(double)deltaTime{
 	[self.glContext makeCurrentContext];
@@ -331,6 +450,46 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 											   data:(uint8_t *)cameraImage.data.bytes + yLen];
 	}
 	
+	//このフレームの分を吸着
+	float sampleRate = self.audioCaptureFormat.mSampleRate;
+	int numSample = deltaTime * sampleRate;
+	
+	float waveSampleInterval = 0.001f;
+	
+	@synchronized(self){
+		float * pSample = (float *)self.capturedAudioStream.bytes;
+		float sampleTime = 0.f;
+		float sampleSum = 0.f;
+		int sampleSumCount = 0;
+		//ミリ秒単位にする
+		for(int si = 0;si < numSample;si++){
+			sampleTime += 1.f / sampleRate;
+			sampleSum += *pSample;
+			sampleSumCount++;
+			pSample++;
+			if(sampleTime >= waveSampleInterval){
+				
+				sampleTime -= waveSampleInterval;
+				float waveValue = sampleSum / (float)sampleSumCount;
+				sampleSum = 0;
+				sampleSumCount = 0;
+				[self.waveAudioStream appendBytes:&waveValue length:sizeof(float)];
+			}
+		}
+	}
+	
+	//1秒分をキープ
+	
+	float waveLenTime = 1.f;
+	int keepSampleNum = waveLenTime / 0.001; //1kHzで1Sec
+	
+	int64_t waveNum = self.waveAudioStream.length / sizeof(float);
+	if(waveNum > keepSampleNum){
+		uint64_t deleteLen = (waveNum-keepSampleNum)*sizeof(float);
+		[self.waveAudioStream replaceBytesInRange:NSMakeRange(0,deleteLen) withBytes:NULL length:0];
+	}
+	//ARWLogInfo(@"wave bytes %ld bytes",self.waveAudioStream.length);
+	
 	[NSOpenGLContext clearCurrentContext];
 }
 -(void)render{
@@ -339,23 +498,42 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	ARWGLCall(glClearColor,0.f,0.f,0.2f,1.f);
 	ARWGLCall(glClear,GL_COLOR_BUFFER_BIT);
 
+	float w = CGRectGetWidth(self.glView.bounds);
+	float h = CGRectGetHeight(self.glView.bounds);
 	CGRect bounds = self.glView.bounds;
-	ARWGLCall(glViewport,0, 0,CGRectGetWidth(bounds), CGRectGetHeight(bounds));
+	ARWGLCall(glViewport,0, 0,w,h);
 	
 	ARWGLCall(glMatrixMode,GL_PROJECTION);
 	glLoadIdentity();
+	glOrtho(0, w, 0, h, 1.0,-1.0);
 	
 	ARWGLCall(glMatrixMode,GL_MODELVIEW);
 	glLoadIdentity();
 	
 	if(self.cameraYTexture){
+		glPushMatrix();
+		
+		CGRect cameraFrame = ARWRectAspectFit(CGRectMake(0, 0, w, h),
+											  CGSizeMake(self.cameraYTexture.width, self.cameraYTexture.height),
+											  ARWLayoutGravityCenter);
+		glTranslatef(CGRectGetMinX(cameraFrame),CGRectGetMinY(cameraFrame), 0.f);
+		glScalef(CGRectGetWidth(cameraFrame)/2.f, CGRectGetHeight(cameraFrame)/2.f, 1.f);
+		
+		glTranslatef(1.f, 1.f, 0.f);
 		[self.cameraRenderer renderWithYTexture:self.cameraYTexture
 									  uvTexture:self.cameraUVTexture];
+		
+		glPopMatrix();
 	}
 	
 	[self.glContext flushBuffer];
 	
 	[NSOpenGLContext clearCurrentContext];
+}
+
+-(void)glViewDidUpdate:(ARWGLView *)glView{
+	//これでチラつかない
+	[self render];
 }
 
 -(void)updateFrameHandler{
