@@ -70,6 +70,8 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 
 //表示分
 @property(nonatomic,strong)NSMutableData * waveAudioStream;
+@property(nonatomic,assign)float waveAudioSampleInterval;
+@property(nonatomic,assign)float waveAudioMaxTimeLen;
 
 @end
 
@@ -272,7 +274,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		self.prevUpdateTime = [NSDate date];
 		self.updating = NO;
 		self.displayLinkCounter = 0;
-		self.displayLinkInterval = 2;
+		self.displayLinkInterval = 1;
 		self.fpsPrintCounter = 0;
 		self.fpsPrintInterval = 10;
 		
@@ -296,6 +298,8 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		[self.audioCaptureSession startRunning];
 		
 		self.waveAudioStream = [[NSMutableData alloc]init];
+		self.waveAudioSampleInterval = 0.001;
+		self.waveAudioMaxTimeLen = 1.f;
 		
 		return YES;
 	}(&error)){
@@ -369,7 +373,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 -(void)audioCaptureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
 	
 	CMFormatDescriptionRef formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer);
-    const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
+    //const AudioStreamBasicDescription *asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
 
 	int64_t numSample = CMSampleBufferGetNumSamples(sampleBuffer);
 	
@@ -408,6 +412,8 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 			uint64_t deleteLen = (sampleNum - maxSampleNum) * sizeof(float);
 			[self.capturedAudioStream replaceBytesInRange:NSMakeRange(0,deleteLen) withBytes:NULL length:0];
 		}
+		
+		//ARWLogInfo(@"capture sample %ld",self.capturedAudioStream.length / sizeof(float));
 		
 		//ARWLogInfo(@"captured audio %ld bytes",self.capturedAudioStream.length);
 	}
@@ -451,12 +457,10 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	}
 	
 	//このフレームの分を吸着
-	float sampleRate = self.audioCaptureFormat.mSampleRate;
-	int numSample = deltaTime * sampleRate;
-	
-	float waveSampleInterval = 0.001f;
-	
 	@synchronized(self){
+		float sampleRate = self.audioCaptureFormat.mSampleRate;
+		int numSample = MIN(deltaTime * sampleRate,self.capturedAudioStream.length / sizeof(float));
+							
 		float * pSample = (float *)self.capturedAudioStream.bytes;
 		float sampleTime = 0.f;
 		float sampleSum = 0.f;
@@ -467,28 +471,28 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 			sampleSum += *pSample;
 			sampleSumCount++;
 			pSample++;
-			if(sampleTime >= waveSampleInterval){
+			if(sampleTime >= self.waveAudioSampleInterval){
 				
-				sampleTime -= waveSampleInterval;
+				sampleTime -= self.waveAudioSampleInterval;
 				float waveValue = sampleSum / (float)sampleSumCount;
 				sampleSum = 0;
 				sampleSumCount = 0;
 				[self.waveAudioStream appendBytes:&waveValue length:sizeof(float)];
 			}
 		}
+		
+		//ARWLogInfo(@"wave sample %ld",self.waveAudioStream.length / sizeof(float));
 	}
 	
 	//1秒分をキープ
 	
-	float waveLenTime = 1.f;
-	int keepSampleNum = waveLenTime / 0.001; //1kHzで1Sec
+	int keepSampleNum = self.waveAudioMaxTimeLen / self.waveAudioSampleInterval; //1kHzで1Sec
 	
 	int64_t waveNum = self.waveAudioStream.length / sizeof(float);
 	if(waveNum > keepSampleNum){
 		uint64_t deleteLen = (waveNum-keepSampleNum)*sizeof(float);
 		[self.waveAudioStream replaceBytesInRange:NSMakeRange(0,deleteLen) withBytes:NULL length:0];
 	}
-	//ARWLogInfo(@"wave bytes %ld bytes",self.waveAudioStream.length);
 	
 	[NSOpenGLContext clearCurrentContext];
 }
@@ -505,7 +509,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	
 	ARWGLCall(glMatrixMode,GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, w, 0, h, 1.0,-1.0);
+	glOrtho(0, w,h,0, -1.0,1.0);
 	
 	ARWGLCall(glMatrixMode,GL_MODELVIEW);
 	glLoadIdentity();
@@ -513,19 +517,54 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	if(self.cameraYTexture){
 		glPushMatrix();
 		
-		CGRect cameraFrame = ARWRectAspectFit(CGRectMake(0, 0, w, h),
-											  CGSizeMake(self.cameraYTexture.width, self.cameraYTexture.height),
-											  ARWLayoutGravityCenter);
+		CGRect cameraFrame = ARWRectAspectFill(CGRectMake(0, 0, w, h),
+											   CGSizeMake(self.cameraYTexture.width, self.cameraYTexture.height),
+											   ARWLayoutGravityCenter);
 		glTranslatef(CGRectGetMinX(cameraFrame),CGRectGetMinY(cameraFrame), 0.f);
 		glScalef(CGRectGetWidth(cameraFrame)/2.f, CGRectGetHeight(cameraFrame)/2.f, 1.f);
 		
 		glTranslatef(1.f, 1.f, 0.f);
 		[self.cameraRenderer renderWithYTexture:self.cameraYTexture
-									  uvTexture:self.cameraUVTexture];
+									  uvTexture:self.cameraUVTexture vFlip:NO];
 		
 		glPopMatrix();
 	}
 	
+	{
+		int maxNum = (int)(self.waveAudioMaxTimeLen/self.waveAudioSampleInterval);
+		float vertices[maxNum*3];
+		float * v = vertices + 0;
+		float * waveValue = (float *)self.waveAudioStream.bytes;
+		int num = (int)(self.waveAudioStream.length / sizeof(float));
+		for(int i=0;i<maxNum;i++){
+			v[0] = i/(float)(maxNum-1);
+			if(i < num){
+				v[1] = waveValue[i];
+				if(i+1 == num){
+					//ARWLogInfo(@"[%d] = %f",i,waveValue[i]);
+				}
+			}else{
+				v[1] = 0.f;
+			}
+			v[2] = 0.f;
+			v+=3;
+		}
+		
+		glPushMatrix();
+		
+		glTranslatef(0, h/2.f, 0.f);
+		glScalef(w, h/2.f, 1.f);
+		ARWGLCall(glColor3f,0.1, 0.9, 0.1);
+		
+		ARWGLCall(glEnableClientState,GL_VERTEX_ARRAY);
+		ARWGLCall(glVertexPointer,3,GL_FLOAT,sizeof(float)*3,vertices);
+		
+		ARWGLCall(glDrawArrays,GL_LINE_STRIP, 0, maxNum);
+		
+		ARWGLCall(glDisableClientState,GL_VERTEX_ARRAY);
+		
+		glPopMatrix();
+	}
 	[self.glContext flushBuffer];
 	
 	[NSOpenGLContext clearCurrentContext];

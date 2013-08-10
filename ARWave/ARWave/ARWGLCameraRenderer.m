@@ -56,14 +56,14 @@
 	return self;
 }
 
--(void)renderWithYTexture:(ARWGLTexture *)yTexture uvTexture:(ARWGLTexture *)uvTexture{
-	static float vertices[] = {
-		-1.f,+1.f,0.f,  0.f,0.f,
-		-1.f,-1.f,0.f,  0.f,1.f,
-		+1.f,-1.f,0.f,  1.f,1.f,
-		+1.f,+1.f,0.f,  1.f,0.f
+-(void)renderWithYTexture:(ARWGLTexture *)yTexture uvTexture:(ARWGLTexture *)uvTexture vFlip:(BOOL)vFlip{
+	float vertices[] = {
+		-1.f,+1.f,0.f,  0.f,vFlip ? 0.f : 1.f,
+		-1.f,-1.f,0.f,  0.f,vFlip ? 1.f : 0.f,
+		+1.f,-1.f,0.f,  1.f,vFlip ? 1.f : 0.f,
+		+1.f,+1.f,0.f,  1.f,vFlip ? 0.f : 1.f
 	};
-	static uint16_t indices[] = {
+	uint16_t indices[] = {
 		0,1,3,2
 	};
 	
@@ -109,7 +109,7 @@
 	ARWGLCall(glActiveTexture,GL_TEXTURE0 + 0);
 	ARWGLCall(glDisable,GL_TEXTURE_2D);
 	
-	
+	ARWGLCall(glUseProgram,0);
 }
 
 @end
