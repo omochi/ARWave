@@ -13,7 +13,6 @@
 		D605491217B12C5900FBBD50 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D605491017B12C5900FBBD50 /* Credits.rtf */; };
 		D605491517B12C5900FBBD50 /* ARWAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D605491417B12C5900FBBD50 /* ARWAppDelegate.m */; };
 		D605491817B12C5900FBBD50 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D605491617B12C5900FBBD50 /* MainMenu.xib */; };
-		D605492017B1329700FBBD50 /* ARWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = D605491F17B1329700FBBD50 /* ARWGLView.m */; };
 		D605492617B13C6400FBBD50 /* ARWLog.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492517B13C6400FBBD50 /* ARWLog.m */; };
 		D605492A17B1419800FBBD50 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605492917B1419800FBBD50 /* OpenGL.framework */; };
 		D605492D17B1534300FBBD50 /* ARWGL.m in Sources */ = {isa = PBXBuildFile; fileRef = D605492C17B1534300FBBD50 /* ARWGL.m */; };
@@ -29,6 +28,7 @@
 		D605494817B610AE00FBBD50 /* ARWGLCameraRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494717B610AD00FBBD50 /* ARWGLCameraRenderer.m */; };
 		D605494B17B611B200FBBD50 /* ARWGLProgram.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494A17B611B100FBBD50 /* ARWGLProgram.m */; };
 		D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494D17B617C100FBBD50 /* ARWGLShader.m */; };
+		D605495317B6440800FBBD50 /* ExceptionHandling.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605495217B6440800FBBD50 /* ExceptionHandling.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,8 +45,6 @@
 		D605491317B12C5900FBBD50 /* ARWAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARWAppDelegate.h; sourceTree = "<group>"; };
 		D605491417B12C5900FBBD50 /* ARWAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARWAppDelegate.m; sourceTree = "<group>"; };
 		D605491717B12C5900FBBD50 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		D605491E17B1329700FBBD50 /* ARWGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLView.h; sourceTree = "<group>"; };
-		D605491F17B1329700FBBD50 /* ARWGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLView.m; sourceTree = "<group>"; };
 		D605492117B1373E00FBBD50 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D605492317B13C4F00FBBD50 /* ARWLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWLib.h; sourceTree = "<group>"; };
 		D605492417B13C6400FBBD50 /* ARWLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWLog.h; sourceTree = "<group>"; };
@@ -75,6 +73,7 @@
 		D605494A17B611B100FBBD50 /* ARWGLProgram.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLProgram.m; sourceTree = "<group>"; };
 		D605494C17B617C100FBBD50 /* ARWGLShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLShader.h; sourceTree = "<group>"; };
 		D605494D17B617C100FBBD50 /* ARWGLShader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLShader.m; sourceTree = "<group>"; };
+		D605495217B6440800FBBD50 /* ExceptionHandling.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExceptionHandling.framework; path = System/Library/Frameworks/ExceptionHandling.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +81,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D605495317B6440800FBBD50 /* ExceptionHandling.framework in Frameworks */,
 				D605493917B40D9000FBBD50 /* CoreVideo.framework in Frameworks */,
 				D605493817B40D8300FBBD50 /* CoreMedia.framework in Frameworks */,
 				D605493617B4025500FBBD50 /* AVFoundation.framework in Frameworks */,
@@ -113,6 +113,7 @@
 		D605490017B12C5900FBBD50 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D605495217B6440800FBBD50 /* ExceptionHandling.framework */,
 				D605493717B40D8300FBBD50 /* CoreMedia.framework */,
 				D605493517B4025500FBBD50 /* AVFoundation.framework */,
 				D605490117B12C5900FBBD50 /* Cocoa.framework */,
@@ -140,8 +141,6 @@
 				D605491317B12C5900FBBD50 /* ARWAppDelegate.h */,
 				D605491417B12C5900FBBD50 /* ARWAppDelegate.m */,
 				D605491617B12C5900FBBD50 /* MainMenu.xib */,
-				D605491E17B1329700FBBD50 /* ARWGLView.h */,
-				D605491F17B1329700FBBD50 /* ARWGLView.m */,
 				D605490817B12C5900FBBD50 /* Supporting Files */,
 			);
 			path = ARWave;
@@ -257,7 +256,6 @@
 			files = (
 				D605490E17B12C5900FBBD50 /* main.m in Sources */,
 				D605491517B12C5900FBBD50 /* ARWAppDelegate.m in Sources */,
-				D605492017B1329700FBBD50 /* ARWGLView.m in Sources */,
 				D605492617B13C6400FBBD50 /* ARWLog.m in Sources */,
 				D605492D17B1534300FBBD50 /* ARWGL.m in Sources */,
 				D605493017B1536600FBBD50 /* ARWEnv.m in Sources */,
