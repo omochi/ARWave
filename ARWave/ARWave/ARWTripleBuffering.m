@@ -37,22 +37,17 @@
 -(void)swap{
 	[self.swapMutex lock];
 	
-	//書き込み終わるのを待機
+	//今回は間に合わなかった
 	if(self.backIndex == 1){
 		[self.swapMutex unlock];
-		[self.writeMutex lock];
-		[self.swapMutex lock];
-		[self.writeMutex unlock];
+		return;
 	}
-	
+	//間に合っているなら
 	id temp = self.buffers[0];
 	self.buffers[0] = self.buffers[1];
 	self.buffers[1] = self.buffers[2];
 	self.buffers[2] = temp;
 	
-	if(self.backIndex == 1){
-		//[self.writeMutex unlock];
-	}
 	self.backIndex = 1;
 	
 	[self.swapMutex unlock];
@@ -70,7 +65,6 @@
 	id result = nil;
 	
 	[self.swapMutex lock];
-	[self.writeMutex lock];
 	result = self.buffers[self.backIndex];
 	[self.swapMutex unlock];
 	return result;
@@ -83,7 +77,6 @@
 		self.buffers[2] = temp;
 	}
 	self.backIndex = 2;
-	[self.writeMutex unlock];
 	[self.swapMutex unlock];
 
 }
