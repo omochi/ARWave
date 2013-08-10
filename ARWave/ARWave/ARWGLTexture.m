@@ -11,6 +11,7 @@
 @interface ARWGLTexture()
 @property(nonatomic,assign)GLuint objId;
 @property(nonatomic,assign)uint32_t width,height;
+@property(nonatomic,assign)GLenum internalFormat;
 @end
 
 @implementation ARWGLTexture
@@ -37,15 +38,19 @@
 }
 
 -(void)setImageWithWidth:(uint32_t)width height:(uint32_t)height
-		  internalFormat:(GLenum)internalFormat format:(GLenum)format type:(GLenum)type
-					data:(const void *)data{
+		  internalFormat:(GLenum)internalFormat{
 	[self bind];
 	
-	ARWGLCall(glTexImage2D,GL_TEXTURE_2D,0,internalFormat,width, height, 0, format, type, NULL);
-	ARWGLCall(glTexSubImage2D,GL_TEXTURE_2D,0,0,0,width,height,format,type,data);
-	
+	ARWGLCall(glTexImage2D,GL_TEXTURE_2D,0,internalFormat,width, height, 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, NULL);
+
 	_width = width;
 	_height = height;
+	_internalFormat = internalFormat;
+}
+
+-(void)setSubImageWithFormat:(GLenum)format type:(GLenum)type data:(const void *)data{
+	[self bind];
+	ARWGLCall(glTexSubImage2D,GL_TEXTURE_2D,0,0,0,_width,_height,format,type,data);
 }
 
 -(void)setMinFiler:(GLenum)minFiler{

@@ -8,7 +8,6 @@
 
 
 #import "ARWAppDelegate.h"
-#import "ARWGLView.h"
 #import "ARWLib.h"
 
 static CVReturn
@@ -26,7 +25,7 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	}
 }
 
-@interface ARWAppDelegate()<ARWGLViewDelegate,AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ARWAppDelegate()<AVCaptureVideoDataOutputSampleBufferDelegate>
 @property(nonatomic,strong)IBOutlet NSWindow *window;
 @property(nonatomic,strong)NSView * rootView;
 @property(nonatomic,strong)NSOpenGLView * glView;
@@ -35,6 +34,8 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 @property(nonatomic,strong)NSOpenGLContext * glContext;
 
 @property(nonatomic,assign)CVDisplayLinkRef displayLink;
+@property(nonatomic,assign)int displayLinkCounter;
+@property(nonatomic,assign)int displayLinkInterval;
 
 @property(nonatomic,assign)uint64_t frameCount;
 @property(nonatomic,strong)NSDate * fpsCountStartTime;
@@ -42,6 +43,10 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 @property(nonatomic,assign)int actualFps;
 @property(nonatomic,strong)NSDate * prevUpdateTime;
 @property(nonatomic,assign)BOOL updating;
+@property(nonatomic,assign)int fpsPrintCounter;
+@property(nonatomic,assign)int fpsPrintInterval;
+
+
 
 @property(nonatomic,strong)AVCaptureSession * captureSession;
 @property(nonatomic,strong)AVCaptureDevice * camera;
@@ -95,6 +100,10 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	
 	self.glContext = [[NSOpenGLContext alloc]initWithFormat:self.glPixelFormat shareContext:nil];
 	if(!self.glContext)@throw ARWGenericExceptionMake(@"OpenGLContext init failed");
+	
+	int value = 1;
+	[self.glContext setValues:&value forParameter:NSOpenGLCPSwapInterval];
+	
 }
 
 -(NSString *)selectCameraUniqueID{
@@ -111,6 +120,24 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	NSString * cameraID = [self selectCameraUniqueID];
 	if(!cameraID)return nil;
 	return [AVCaptureDevice deviceWithUniqueID:cameraID];
+}
+
+//キャプチャスレッドからメインスレにポストされる
+-(void)initCameraCaptureWithWidth:(uint32_t)width height:(uint32_t)height{
+	if(!self.cameraBuffering){
+		//二重初期化防止
+		
+		ARWLogInfo(@"capture init %d x %d",width,height);
+		self.cameraBuffering = [[ARWTripleBuffering alloc]initWithBufferCreator:^id{
+			ARWImage * image = [[ARWImage alloc]init];
+			image.format = ARWImageFormatYUV420;
+			image.width = width;
+			image.height = height;
+			image.data = [NSMutableData dataWithLength:width*height*2];
+			return image;
+		}];
+	}
+
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification{
@@ -132,6 +159,10 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		self.actualFps = 0;
 		self.prevUpdateTime = [NSDate date];
 		self.updating = NO;
+		self.displayLinkCounter = 0;
+		self.displayLinkInterval = 2;
+		self.fpsPrintCounter = 0;
+		self.fpsPrintInterval = 10;
 		
 		//GL
 		[self initOpenGL];
@@ -144,41 +175,56 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 
 		
 		//カメラ
-		self.captureSession = [[AVCaptureSession alloc]init];
 		self.camera = [self selectCamera];
 		if(!self.camera){
 			if(error)*error = ARWErrorMake(ARWErrorNotFoundCamera,nil,nil);
 			return NO;
 		}
+		
+		//ARWLogInfo(@"formats = \n%@",[self.camera formats]);
+		//ARWLogInfo(@"format = %@",[self.camera activeFormat]);
+		
+//		AVCaptureDeviceFormat * selectedFormat = self.camera.activeFormat;
+//		for(AVCaptureDeviceFormat * format in self.camera.formats){
+//			CMVideoFormatDescriptionRef desc = format.formatDescription;
+//			CMVideoDimensions dims = CMVideoFormatDescriptionGetDimensions(desc);
+//			FourCharCode fcc = CMFormatDescriptionGetMediaSubType(desc);
+//			ARWLogInfo(@"%@ dim %d x %d %@",
+//					   ARWFourCharCodeToString(fcc),
+//					   dims.width,dims.height,[format videoSupportedFrameRateRanges]);
+//			if(dims.width >= 800 && dims.height >= 600){
+//				selectedFormat= format;
+//				break;
+//			}
+//		}
+//		
+//		[self.camera lockForConfiguration:error];
+//		[self.camera setActiveFormat:selectedFormat];
+//		[self.camera unlockForConfiguration];
+		
+		
+		
 		AVCaptureDeviceInput * input = [AVCaptureDeviceInput deviceInputWithDevice:self.camera error:error];
 		if(!input)return NO;
-		[self.captureSession addInput:input];
 		
 		AVCaptureVideoDataOutput * output = [[AVCaptureVideoDataOutput alloc]init];
-		[self.captureSession addOutput:output];
-		output.alwaysDiscardsLateVideoFrames = YES;
+		output.alwaysDiscardsLateVideoFrames = NO;
+
 		NSMutableDictionary * videoSettings = [NSMutableDictionary dictionary];
 		videoSettings[(__bridge id)kCVPixelBufferPixelFormatTypeKey] = @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange);
 		output.videoSettings = videoSettings;
-		
+
 		self.captureQueue = dispatch_queue_create("camera queue", DISPATCH_QUEUE_SERIAL);
-		
 		[output setSampleBufferDelegate:self queue:self.captureQueue];
+
+		//AVCaptureConnection * captureConnection = [output connectionWithMediaType:AVMediaTypeVideo];
+		//captureConnection.videoMinFrameDuration = CMTimeMake(1, 60);
 		
-		self.captureSession.sessionPreset = AVCaptureSessionPreset1280x720;
-		
-		self.cameraBuffering = [[ARWTripleBuffering alloc]initWithBufferCreator:^id{
-			float w = 1280;
-			float h = 960;
-			ARWImage * image = [[ARWImage alloc]init];
-			image.format = ARWImageFormatYUV420;
-			image.width = w;
-			image.height = h;
-			image.data = [NSMutableData dataWithLength:w*h*2];
-			return image;
-		}];
-		
-		self.cameraTexture = [[ARWGLTexture alloc]init];
+		self.captureSession = [[AVCaptureSession alloc]init];
+
+		self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+		[self.captureSession addInput:input];
+		[self.captureSession addOutput:output];
 		
 		self.cameraRenderer = [[ARWGLCameraRenderer alloc]init];
 		
@@ -207,61 +253,68 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		return;
 	}
 	
-	ARWImage * backBuffer = [self.cameraBuffering lock];
-	
-	uint8_t * d = (uint8_t *)[backBuffer.data mutableBytes];
-
 	int w = (int)CVPixelBufferGetWidthOfPlane(pixelBuffer,0);
 	int h = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer,0);
-	{
-		uint8_t * s = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,0);
-		int stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
-		for(int yi = 0;yi<h;yi++){
-			memcpy(d,s,w);
-			d += w;
-			s += stride;
+	
+	if(!self.cameraBuffering){
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			//二重防止されてる
+			[self initCameraCaptureWithWidth:w height:h];
+		});
+		
+	}else{
+		
+		ARWImage * backBuffer = [self.cameraBuffering lock];
+		
+		uint8_t * d = (uint8_t *)[backBuffer.data mutableBytes];
+		{
+			uint8_t * s = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,0);
+			int stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+			for(int yi = 0;yi<h;yi++){
+				memcpy(d,s,w);
+				d += w;
+				s += stride;
+			}
 		}
+		
+		{
+			uint8_t * s = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,1);
+			int stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+			for(int yi=0;yi<h/2;yi++){
+				memcpy(d,s,w);
+				d += w;
+				s += stride;
+			}
+		}
+		
+		//ARWLogInfo(@"write %@ %d x %d",backBuffer,w,h);
+		
+		[self.cameraBuffering unlock];
 	}
 		
-	{
-		uint8_t * s = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,1);
-		int stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
-		for(int yi=0;yi<h/2;yi++){
-			memcpy(d,s,w);
-			d += w;
-			s += stride;
-		}
-	}
-
-	ARWLogInfo(@"write %@",backBuffer);
-	
-	[self.cameraBuffering unlock];
-	
 	if(CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly)){
 		ARWLogError(@"CVPixelBufferUnlockBaseAddress failed");
 		return;
 	}
 }
 
-
-
--(void)glView:(ARWGLView *)glView updateWithDeltaTime:(double)deltaTime{
-	//ARWLogInfo(@"%f",deltaTime);
-	[self updateWithDeltaTime:deltaTime];
-	[self render];
-}
-
 -(void)updateWithDeltaTime:(double)deltaTime{
 	[self.glContext makeCurrentContext];
 	
-	[self.cameraBuffering swap];
-	ARWImage * cameraImage = [self.cameraBuffering front];
-	
-	ARWLogInfo(@"read %@",cameraImage);
+	if(self.cameraBuffering){
+		[self.cameraBuffering swap];
+		ARWImage * cameraImage = [self.cameraBuffering front];
+		
+		if(!self.cameraTexture){
+			self.cameraTexture = [[ARWGLTexture alloc]init];
+			[self.cameraTexture setImageWithWidth:cameraImage.width
+										   height:cameraImage.height
+								   internalFormat:GL_LUMINANCE];
+		}
 
-	[self.cameraTexture setImageWithWidth:cameraImage.width height:cameraImage.height
-						   internalFormat:GL_LUMINANCE format:GL_LUMINANCE
-									 type:GL_UNSIGNED_BYTE data:cameraImage.data.bytes];
+		[self.cameraTexture setSubImageWithFormat:GL_LUMINANCE type:GL_UNSIGNED_BYTE data:cameraImage.data.bytes];
+	}
 	
 	[NSOpenGLContext clearCurrentContext];
 }
@@ -280,9 +333,9 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 	ARWGLCall(glMatrixMode,GL_MODELVIEW);
 	glLoadIdentity();
 	
-	[self.cameraRenderer render:self.cameraTexture];
-	
-	ARWGLCall(glFlush);
+	if(self.cameraTexture){
+		[self.cameraRenderer render:self.cameraTexture];
+	}
 	
 	[self.glContext flushBuffer];
 	
@@ -298,7 +351,11 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 		self.fpsCountStartTime = now;
 		self.actualFps = self.fpsFrameCount;
 		self.fpsFrameCount = 0;
-		ARWLogInfo(@"fps %d",self.actualFps);
+		self.fpsPrintCounter ++;
+		if(self.fpsPrintCounter >= self.fpsPrintInterval){
+			self.fpsPrintCounter = 0;
+			ARWLogInfo(@"fps %d",self.actualFps);
+		}
 	}
 	double deltaTime = [now timeIntervalSinceDate:self.prevUpdateTime];
 	self.prevUpdateTime = now;
@@ -312,12 +369,18 @@ ARWAppDelegateDisplayLinkOutputCallback(CVDisplayLinkRef displayLink,
 						 outputTime:(const CVTimeStamp*) outputTime
 							flagsIn:(CVOptionFlags)flagsIn
 						   flagsOut:(CVOptionFlags*)flagsOut{
-	if(!self.updating){
-		self.updating = YES;
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self updateFrameHandler];
-			self.updating = NO;
-		});
+	
+	self.displayLinkCounter++;
+	if(self.displayLinkCounter >= self.displayLinkInterval){
+		self.displayLinkCounter = 0;
+		if(!self.updating){
+			self.updating = YES;
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[self updateFrameHandler];
+				self.updating = NO;
+			});
+		}
+		
 	}
 	return kCVReturnSuccess;
 }

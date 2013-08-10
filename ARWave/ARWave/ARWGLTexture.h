@@ -19,8 +19,8 @@
 -(void)bind;
 
 -(void)setImageWithWidth:(uint32_t)width height:(uint32_t)height
-		  internalFormat:(GLenum)internalFormat format:(GLenum)format type:(GLenum)type
-					data:(const void *)data;
+		  internalFormat:(GLenum)internalFormat;
+-(void)setSubImageWithFormat:(GLenum)format type:(GLenum)type data:(const void *)data;
 
 -(void)setMinFiler:(GLenum)minFiler;
 -(void)setMagFiler:(GLenum)magFiler;

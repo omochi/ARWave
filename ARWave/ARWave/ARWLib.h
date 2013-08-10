@@ -18,4 +18,4 @@
 #import "ARWImageFormat.h"
 #import "ARWTripleBuffering.h"
 #import "ARWGLCameraRenderer.h"
-
+#import "ARWFourCharCode.h"

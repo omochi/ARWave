@@ -29,6 +29,7 @@
 		D605494B17B611B200FBBD50 /* ARWGLProgram.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494A17B611B100FBBD50 /* ARWGLProgram.m */; };
 		D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */ = {isa = PBXBuildFile; fileRef = D605494D17B617C100FBBD50 /* ARWGLShader.m */; };
 		D605495317B6440800FBBD50 /* ExceptionHandling.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D605495217B6440800FBBD50 /* ExceptionHandling.framework */; };
+		D605495617B6599F00FBBD50 /* ARWFourCharCode.m in Sources */ = {isa = PBXBuildFile; fileRef = D605495517B6599F00FBBD50 /* ARWFourCharCode.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +75,8 @@
 		D605494C17B617C100FBBD50 /* ARWGLShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWGLShader.h; sourceTree = "<group>"; };
 		D605494D17B617C100FBBD50 /* ARWGLShader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWGLShader.m; sourceTree = "<group>"; };
 		D605495217B6440800FBBD50 /* ExceptionHandling.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExceptionHandling.framework; path = System/Library/Frameworks/ExceptionHandling.framework; sourceTree = SDKROOT; };
+		D605495417B6599E00FBBD50 /* ARWFourCharCode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARWFourCharCode.h; sourceTree = "<group>"; };
+		D605495517B6599F00FBBD50 /* ARWFourCharCode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARWFourCharCode.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +188,8 @@
 				D605494A17B611B100FBBD50 /* ARWGLProgram.m */,
 				D605494C17B617C100FBBD50 /* ARWGLShader.h */,
 				D605494D17B617C100FBBD50 /* ARWGLShader.m */,
+				D605495417B6599E00FBBD50 /* ARWFourCharCode.h */,
+				D605495517B6599F00FBBD50 /* ARWFourCharCode.m */,
 			);
 			name = Lib;
 			sourceTree = "<group>";
@@ -267,6 +272,7 @@
 				D605494817B610AE00FBBD50 /* ARWGLCameraRenderer.m in Sources */,
 				D605494B17B611B200FBBD50 /* ARWGLProgram.m in Sources */,
 				D605494E17B617C100FBBD50 /* ARWGLShader.m in Sources */,
+				D605495617B6599F00FBBD50 /* ARWFourCharCode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
